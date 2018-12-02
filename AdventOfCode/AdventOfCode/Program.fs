@@ -1,8 +1,8 @@
 ﻿open System
-open Day1
+open Day2
 
 [<EntryPoint>]
 let main args =
-    solveDay1Part2()
+    solveDay2Part2()
     System.Console.ReadKey() |> ignore
     0
