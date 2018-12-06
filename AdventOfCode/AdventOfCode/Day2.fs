@@ -20,8 +20,8 @@ let solveDay2Part2() =
               |> List.map (fun first -> input
                                         |> List.map (fun second -> let charArray = [0 .. (first.Length - 1)]
                                                                                    |> List.map  (fun (index: int) -> match first.[index] = second.[index] with
-                                                                                                                   | true -> (first.[index].ToString())
-                                                                                                                   | false -> "")
+                                                                                                                     | true -> (first.[index].ToString())
+                                                                                                                     | false -> "")
                                                                                    |> Array.ofList
                                                                    System.String.Concat (charArray), first))
               |> List.concat
