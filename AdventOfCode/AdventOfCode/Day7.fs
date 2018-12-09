@@ -49,10 +49,9 @@ let finishStep stepId stepList =
     |> List.map ( fun entry -> { entry with requirements = entry.requirements |> List.filter (fun req -> not (req = stepId))})
     |> List.filter (fun entry -> not (entry.id = stepId))
 
-
-let rec work (result: char list) (stepList: step list) (workerList: worker list) =
+let rec work (result: char list) (duration: int) (stepList: step list) (workerList: worker list) =
     match stepList.Length with
-    | 0 -> result
+    | 0 -> result, duration
     | _ -> let workerDoneNext = match workerList |> List.exists (fun worker -> worker.till > 1) with
                                 | true -> workerList
                                           |> List.filter (fun worker -> worker.till > 0)
@@ -60,24 +59,28 @@ let rec work (result: char list) (stepList: step list) (workerList: worker list)
                                           |> List.head
                                 | false -> workerList
                                            |> List.head
+           let totalWorkTime = duration + workerDoneNext.till
            let workerAfterWork = workerList
                                  |> List.map (fun worker -> { worker with till = worker.till - workerDoneNext.till})
                                  |> List.sortByDescending (fun worker -> worker.workingOn)
-           let stepList, worker, result =
+           let clearedSetpList = workerAfterWork
+                                 |> List.fold (fun stepList worker -> match worker.till < 1 && not (worker.workingOn = ' ') with
+                                                                      | true -> finishStep worker.workingOn stepList
+                                                                      | false -> stepList) stepList
+           let updatedSetpList, worker, result =
                workerAfterWork
                |> List.fold (fun (stepsToDo: step list, workersassigned: worker list, result: char list) (worker: worker) ->
-                                   match worker.till with
-                                   | x when x < 1 -> let stepDone = worker.workingOn
-                                                     let newStepList = finishStep stepDone stepsToDo
-                                                     match beginNextStep newStepList with
-                                                     | Some (stepId, duration, updatedStepList) -> let updatedWorker = { worker with workingOn = stepId
-                                                                                                                                     till = duration}
-                                                                                                   updatedStepList, (updatedWorker :: workersassigned), ([ result; [ stepDone ]] |> List.concat)
-                                                     | None -> newStepList, ({ worker with workingOn = ' '
-                                                                                           till = 0} :: workersassigned), ([ result; [ stepDone ]] |> List.concat)
-                                   | _ -> (stepsToDo, worker :: workersassigned, result)
-                            ) (stepList, [], result)
-           work result stepList worker
+                                   match worker.till < 1 with
+                                   | true -> let stepDone = worker.workingOn
+                                             match beginNextStep stepsToDo with
+                                             | Some (stepId, duration, updatedStepList) -> let updatedWorker = { worker with workingOn = stepId
+                                                                                                                             till = duration}
+                                                                                           updatedStepList, (updatedWorker :: workersassigned), ([ result; [ stepDone ]] |> List.concat)
+                                             | None -> stepsToDo, ({ worker with workingOn = ' '
+                                                                                 till = 0} :: workersassigned), ([ result; [ stepDone ]] |> List.concat)
+                                   | false -> (stepsToDo, worker :: workersassigned, result)
+                            ) (clearedSetpList, [], result)
+           work result totalWorkTime updatedSetpList worker
 
 let workForce amount =
     [1 .. amount]
@@ -85,11 +88,11 @@ let workForce amount =
                             till= 0})
 
 let solveDay7Part1() =
-    (work [] input (workForce 1))|> List.iter (fun c -> match c = ' ' with
+    let order, _ = work [] 0 input (workForce 1)
+    order|> List.iter (fun c -> match c = ' ' with
                                                         | true -> printf ""
                                                         | false -> printf "%c" c)
 
 let solveDay7Part2() =
-    (work [] input (workForce 5))|> List.iter (fun c -> match c = ' ' with
-                                                        | true -> printf ""
-                                                        | false -> printf "%c" c)
+    let _, duration = work [] 0 input (workForce 5)
+    printf "%i" duration

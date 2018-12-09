@@ -1,7 +1,7 @@
-﻿open Day8
+﻿open Day7
 
 [<EntryPoint>]
 let main _ =
-    solveDay8Part1()
+    solveDay7Part2()
     System.Console.ReadKey() |> ignore
     0
