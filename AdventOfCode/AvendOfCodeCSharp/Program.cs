@@ -10,7 +10,7 @@ namespace AvendOfCodeCSharp
     {
         static void Main(string[] args)
         {
-            new Day10().SolvePart1();
+            new Day11().SolvePart2();
             Console.ReadKey();
         }
     }
